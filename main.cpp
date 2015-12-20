@@ -1,15 +1,5 @@
-#include <stdio.h>
-#include <math.h>
-#include <PortAudio/portaudio.h>
-#include <sndfile.hh>
-
-#ifdef WIN32
-#include <windows.h>
-
-#if PA_USE_ASIO
-#include "pa_asio.h"
-#endif
-#endif
+#include "Clip.hpp"
+#include "Mixer.hpp"
 
 #define NUM_SECONDS   (180)
 #define SAMPLE_RATE   (44100)
@@ -21,6 +11,8 @@
 
 #define TABLE_SIZE   (200)
 
+
+
 class paTestData
 {
 	public:
@@ -28,51 +20,29 @@ class paTestData
 	unsigned long cursor, frames;
 };
 
-float freq;
 static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  unsigned long framesPerBuffer,
 						  const PaStreamCallbackTimeInfo* timeInfo,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData ) {
-	paTestData *testdata = (paTestData*)userData;
+	Mixer *mix = (Mixer*)userData;
 	float* out = (float*)outputBuffer;
 	unsigned long i;
-	int finished = paContinue;
+	PaStreamCallbackResult finish = paContinue;
 	(void) inputBuffer;
 	(void) timeInfo;
 	(void) statusFlags;
 
-	for(i=0; i<framesPerBuffer; i++){
-		if(testdata->cursor < testdata->frames){
-			*out++ = testdata->data[testdata->cursor++];//CH 1
-			*out++ = testdata->data[testdata->cursor++];//Ch 2
-		}else{
-			out[i] = 0;
-			return 1;
-		}
+	for(i=0; i<framesPerBuffer;i++){
+		//if(mix->cursor < mix->sampleables[0]->len){
+			*out++ = mix->sample();//CH 1
+			*out++ = mix->sample();//CH 2
+		/*}else{
+			*out++ = 0;
+			finish = paAbort;
+		}*/
 	}
-	return 0;
-	/*float *out = (float*)outputBuffer;
-    unsigned int i;
-    (void) inputBuffer; /* Prevent unused variable warning. */
-    
-    /*for( i=0; i<framesPerBuffer; i++ )
-    {
-        *out++ = data->left_phase;  /* left */
-        /**out++ = data->right_phase;  /* right */
-        /* Generate simple sawtooth phaser that ranges between -1.0 and 1.0. */
-        /*data->left_phase += freq + lfo.left_phase;
-        data->right_phase += freq + lfo.right_phase;
-        /* When signal reaches top, drop back down. */
-        /*if( data->left_phase >= 1.0f ) data->left_phase -= 2.0f;
-        if( data->right_phase >= 1.0f ) data->right_phase -= 2.0f;
-
-        lfo.left_phase += 0.001;
-        lfo.right_phase += 0.0008;
-        if( lfo.left_phase >= 0.1f ) lfo.left_phase -= 0.2f;
-        if( lfo.right_phase >= 0.2f ) lfo.right_phase -= 0.4f;
-    }
-	return paContinue;*/
+	return finish;
 }
 
 paTestData* readwav(char* filename){
@@ -103,28 +73,29 @@ paTestData* readwav(char* filename){
 	return testdata;
 }
 
-/*
-* This routine is called by portaudio when playback is done.
-*/
 static void StreamFinished( void* userData )
 {
  paTestData *data = (paTestData *) userData;
  printf( "Stream Completed.\n");
 }
 
-/*******************************************************************/
+//*******************************************************************
 int main(void)
 {
 	PaStreamParameters outputParameters;
 	PaStream *stream;
 	PaError err;
-	paTestData *testdata;
 	int i;
 
-	/* initialise */
-	freq = 65.406 * 2 / SAMPLE_RATE;
+	/* init */
+	Clip clip1("res/alive01.wav", SAMPLE_RATE*NUM_SECONDS);
+	Clip clip2("res/alive02.wav", SAMPLE_RATE*NUM_SECONDS);
 
-	testdata = readwav("res/alive02.wav");
+	Sampleable** samptable =
+		(Sampleable**)malloc(2*sizeof(Sampleable*));
+	samptable[0] = &clip1;
+	samptable[1] = &clip2;
+	Mixer mainMix(samptable, 2);
 
 	err = Pa_Initialize();
 	if( err != paNoError ) goto error;
@@ -150,10 +121,9 @@ int main(void)
 			FRAMES_PER_BUFFER,
 			paClipOff,      /* we won't output out of range samples so don't bother clipping them */
 			patestCallback,
-			testdata );
+			&mainMix );
 	if( err != paNoError ) goto error;
 
-	//sprintf( data.message, "No Message" );
 	err = Pa_SetStreamFinishedCallback( stream, &StreamFinished );
 	if( err != paNoError ) goto error;
 

@@ -1,0 +1,76 @@
+Notes:
+
+paTestData
+	-all persistent data accessed by CALLBACK
+	-class definition, will include:
+		-MIXER object, referencing
+			-TRACK objects, referencing
+				-SYNTH objects, with their
+					-EFFECTS
+				-SAMPLE objects, with their
+					-EFFECTS
+		-SEQUENCER object, referencing the same TRACKS as the MIXER
+
+CALLBACK
+	-void *inputbuffer (const)
+		-a float from -1 to 1 describing INSTANTANEOUS amplitude of input signal @ SAMPLE_RATE
+	-void *outputbuffer - cast to float *out
+	 	-a float from -1 to 1 describing INSTANTANEOUS amplitude of output signal @ SAMPLE_RATE
+
+MIXEQUENCER ***
+	-int size
+	-Sampleable*[]
+	-called in callback:
+		float val
+		for(int i=0; i<mixer.size; i++){
+			val += *(mixequencer.sampleables[i]).getSample();
+			val /= i;
+		}
+		*out++ = val;
+
+SAMPLEABLE  ***(TODO: extend float to template functionality)
+	-float getSample()
+	-INFO info
+
+CLIP: public Sampleable
+	-float* data
+	-int len, cursor
+	-getSample(){
+		return data[cursor++]; ***(Get # of channels from info)
+	}
+
+SYNTH: public Sampleable
+	-int[] phases = new int[info.channels];
+	-float freq
+	-int pitch
+	-freqToPitch(float)
+	-pitchToFreq(int)
+	-getSample to be implemented as sine, square, FM, etc. in subclasses
+
+
+
+
+
+IAudioContext
+	play,pause,stopAudio(AudioObject)
+
+IAudioDevice
+	createAudio(fileName)
+	releaseAudio(IAudioData)
+
+AudioObject
+	generateSamples(stream, len)
+	setPos(pos)
+	IAudioData
+	SampleInfo
+
+IAudioData
+	generateSamples(float* stream, len, pos, SampleInfo)
+	getLength()
+
+SampleInfo
+	Volume
+	Pitch
+	Loop
+	LoopPos
+	Panning

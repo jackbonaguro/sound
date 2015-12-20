@@ -8,8 +8,8 @@ go:
 	-make run
 
 build:
-	g++ -c main.cpp
-	g++ main.o -o main.exe -lportaudio -lsndfile -g
+	g++ -c Sampleable.cpp Clip.cpp Mixer.cpp main.cpp
+	g++ Sampleable.o Clip.o Mixer.o main.o -o main.exe -lportaudio -lsndfile -g
 
 run:
 	./main.exe
