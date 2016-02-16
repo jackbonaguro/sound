@@ -1,20 +1,12 @@
+#include "main.hpp"
+#include "Sampler.hpp"
 #include "Clip.hpp"
 #include "Mixer.hpp"
-
-#define NUM_SECONDS   (180)
-#define SAMPLE_RATE   (44100)
-#define FRAMES_PER_BUFFER  (64)
-
-#ifndef M_PI
-#define M_PI  (3.14159265)
-#endif
-
-#define TABLE_SIZE   (200)
+#include "Synth.hpp"
 
 
 
-class paTestData
-{
+class paTestData{
 	public:
 	float* data;
 	unsigned long cursor, frames;
@@ -49,7 +41,7 @@ paTestData* readwav(char* filename){
 	SNDFILE* file;
 	SF_INFO info;
 	info.frames = SAMPLE_RATE*NUM_SECONDS;
-	info. samplerate = SAMPLE_RATE;
+	info.samplerate = SAMPLE_RATE;
 	info.channels = 2;
 	info.format = SF_FORMAT_WAV;
 	file = sf_open(filename,
@@ -88,14 +80,16 @@ int main(void)
 	int i;
 
 	/* init */
-	Clip clip1("res/alive01.wav", SAMPLE_RATE*NUM_SECONDS);
+	/*Clip clip1("res/alive01.wav", SAMPLE_RATE*NUM_SECONDS);
 	Clip clip2("res/alive02.wav", SAMPLE_RATE*NUM_SECONDS);
-
-	Sampleable** samptable =
-		(Sampleable**)malloc(2*sizeof(Sampleable*));
-	samptable[0] = &clip1;
-	samptable[1] = &clip2;
-	Mixer mainMix(samptable, 2);
+	*/
+	Sampler** samptable =
+		(Sampler**)malloc(sizeof(Sampler*));
+	//samptable[0] = &clip1;
+	//samptable[1] = &clip2;*/
+	Synth ss(2*SAMPLE_RATE*NUM_SECONDS, 0.1, 40.0);
+	samptable[0] = &ss;
+	Mixer mainMix(samptable, 1);//samptable, 2);
 
 	err = Pa_Initialize();
 	if( err != paNoError ) goto error;
@@ -110,7 +104,7 @@ int main(void)
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
 	outputParameters.hostApiSpecificStreamInfo = NULL;
 
-	printf("PortAudio Test. SR = %d, Channels = %d\n",
+	printf("PortAudio Test. SR = %d, Channels = %i\n",
 		SAMPLE_RATE,outputParameters.channelCount);
 
 	err = Pa_OpenStream(

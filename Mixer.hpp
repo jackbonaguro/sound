@@ -1,7 +1,7 @@
-class Mixer: public Sampleable{
+class Mixer: public Sampler{
 public:
 	int size;
-	Sampleable** sampleables;
-	Mixer(Sampleable**,int);
+	Sampler** samplers;
+	Mixer(Sampler**,int);
 	virtual float sample();
 };

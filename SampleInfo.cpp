@@ -1,0 +1,3 @@
+class SampleInfo{
+	float volume;
+};

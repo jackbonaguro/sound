@@ -1,8 +1,10 @@
+#include "main.hpp"
+#include "Sampler.hpp"
 #include "Clip.hpp"
 
-Clip::Clip(char* filename, int ilen){
-	this->len = ilen;
-	this->readwav(filename);
+Clip::Clip(int ilen, char* filename){
+	len = ilen;
+	readwav(filename);
 }
 
 void Clip::readwav(char* filename){
@@ -28,8 +30,4 @@ void Clip::readwav(char* filename){
 
 	cursor = 0;
 	len = (int)numframes;
-}
-
-float Clip::sample(){
-	return data[cursor++];
 }

@@ -1,10 +1,5 @@
-#include "main.hpp"
-
-class Clip: public Sampleable{
+class Clip: public Sampler{
 public:
-	float* data;
-	int cursor, len;
-	Clip(char*,int);
-	virtual float sample();
+	Clip(int,char*);
 	virtual void readwav(char*);
 };
