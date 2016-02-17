@@ -3,19 +3,28 @@
 #include "Mixer.hpp"
 
 Mixer::Mixer(Sampler** isamplers, int isize){
-	this->size = isize;
-	this->samplers =
-		(Sampler**)malloc(this->size * sizeof(Sampler));
+	size = isize;
+	samplers = (Sampler**)malloc(size*sizeof(Sampler));
+	int min = -1;
 	for(int i=0; i<this->size; i++){
-		this->samplers[i] = isamplers[i];
+		samplers[i] = isamplers[i];
+		min = (min > samplers[i]->len || min == -1)
+			? samplers[i]->len : min;
 	}
+
+	len = min;
+	cursor = 0;
+	data = (float*)malloc(len*sizeof(float));
+
+	mix();
 }
 
-float Mixer::sample(){
-	float val = 0;
-	for(int i=0; i<this->size; i++){
-		val += (this->samplers[i])->sample();//Add all samples
+void Mixer::mix(){
+	for(int i=0; i<len; i++){
+		data[i] = 0;
+		for(int j=0; j<size; j++){
+			data[i] += samplers[j]->data[i];//Add all samples
+		}
+		data[i] /= size;//Headroom
 	}
-	val /= this->size;//Headroom
-	return val;
 }

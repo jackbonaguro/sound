@@ -3,5 +3,5 @@ public:
 	int size;
 	Sampler** samplers;
 	Mixer(Sampler**,int);
-	virtual float sample();
+	virtual void mix();
 };

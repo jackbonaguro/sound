@@ -5,13 +5,6 @@
 #include "Synth.hpp"
 
 
-
-class paTestData{
-	public:
-	float* data;
-	unsigned long cursor, frames;
-};
-
 static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  unsigned long framesPerBuffer,
 						  const PaStreamCallbackTimeInfo* timeInfo,
@@ -37,38 +30,8 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	return finish;
 }
 
-paTestData* readwav(char* filename){
-	SNDFILE* file;
-	SF_INFO info;
-	info.frames = SAMPLE_RATE*NUM_SECONDS;
-	info.samplerate = SAMPLE_RATE;
-	info.channels = 2;
-	info.format = SF_FORMAT_WAV;
-	file = sf_open(filename,
-		SFM_READ, &info);
-
-	if(file == NULL){
-		printf(sf_strerror(file));
-	}
-
-	paTestData* testdata = (paTestData*)malloc(sizeof(paTestData));
-	testdata->data = (float*)malloc(info.frames * info.channels * sizeof(float));
-
-	sf_count_t framestoread = sf_readf_float(file, testdata->data,
-		info.frames);
-
-	sf_close(file);
-
-	testdata->cursor = 0;
-	testdata->frames = (unsigned long)framestoread;
-
-	return testdata;
-}
-
-static void StreamFinished( void* userData )
-{
- paTestData *data = (paTestData *) userData;
- printf( "Stream Completed.\n");
+static void StreamFinished( void* userData ){
+	printf( "Stream Completed.\n");
 }
 
 //*******************************************************************
@@ -89,7 +52,7 @@ int main(void)
 	//samptable[1] = &clip2;*/
 	Synth ss(2*SAMPLE_RATE*NUM_SECONDS, 0.1, 40.0);
 	samptable[0] = &ss;
-	Mixer mainMix(samptable, 1);//samptable, 2);
+	Mixer mainMix(samptable, 1);//2);
 
 	err = Pa_Initialize();
 	if( err != paNoError ) goto error;

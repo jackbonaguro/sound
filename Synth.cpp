@@ -19,8 +19,8 @@ void Synth::generate() {
 	for(int i = 0; i < len; i+=2){
 		data[i] = amp * sin(2*M_PI*(phase));
 		data[i+1] = amp * sin(2*M_PI*(phase));
-		if (phase >= 2*M_PI){
-			phase -= 2*M_PI;
+		if (phase >= 1.0){
+			phase -= 1.0;
 		}
 		phase += freq;
 	}
